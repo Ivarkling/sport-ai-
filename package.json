@@ -1,7 +1,9 @@
 {
   "name": "sport-iq",
-  "version": "2.0.0",
+  "version": "1.1.0",
   "private": true,
+  "description": "Sport-IQ matchstatistik för fotboll, NHL och NBA",
   "scripts": {"start": "node server.js"},
-  "dependencies": {"express": "^4.21.2"}
+  "dependencies": {"express": "^4.21.2"},
+  "engines": {"node": ">=18"}
 }
