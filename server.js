@@ -25,6 +25,11 @@ app.get('/api/nhl/team/:abbr/schedule', api(req=>{
   const now=new Date(), year=now.getUTCFullYear()-(now.getUTCMonth()<8?1:0);
   return nhl(`club-schedule-season/${abbr}/${year}${year+1}`);
 }));
+app.get('/api/nhl/team/:abbr/players',api(req=>{
+  const abbr=req.params.abbr.toUpperCase();
+  if(!/^[A-Z]{2,4}$/.test(abbr))throw Error('Ogiltig lagkod');
+  return nhl(`club-stats/${abbr}/now`);
+}));
 function checkLeague(req){const l=req.params.league;if(!leagues[l])throw Error('Okänd liga');return l;}
 app.get('/api/league/:league/scoreboard',api(req=>espn(checkLeague(req),'scoreboard?limit=100')));
 app.get('/api/league/:league/standings',api(req=>{
@@ -36,14 +41,9 @@ app.get('/api/league/:league/team/:id/schedule',api(req=>{
   if(!/^\d{1,12}$/.test(id))throw Error('Ogiltigt lag-ID');
   return espn(l,`teams/${id}/schedule?limit=100`);
 }));
-// Spelarstatistik för vald match: officiell NHL-boxscore eller ESPN-matchsammanfattning.
-app.get('/api/nhl/game/:id/boxscore',api(req=>{
-  if(!/^\d{1,12}$/.test(req.params.id))throw Error('Ogiltigt match-ID');
-  return nhl(`gamecenter/${req.params.id}/boxscore`);
-}));
-app.get('/api/league/:league/event/:id/summary',api(req=>{
-  const l=checkLeague(req);
-  if(!/^\d{1,12}$/.test(req.params.id))throw Error('Ogiltigt match-ID');
-  return espn(l,`summary?event=${req.params.id}`);
+app.get('/api/league/:league/team/:id/leaders',api(req=>{
+  const l=checkLeague(req),id=req.params.id;
+  if(!/^\d{1,12}$/.test(id))throw Error('Ogiltigt lag-ID');
+  return espn(l,`teams/${id}`);
 }));
 app.listen(PORT,()=>console.log(`Sport-IQ körs på port ${PORT}`));
