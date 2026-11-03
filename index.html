@@ -5,7 +5,7 @@
 </style></head><body><header><div class="head"><div><div class="brand">◆ SPORT-<span>IQ</span></div><div class="small">Riktiga matcher • Statistik • Lagform</div></div><div class="pill" id="updated">Väntar på data</div></div></header>
 <main class="wrap"><div class="nav" id="sports"><button data-sport="football" class="active">⚽ Fotboll</button><button data-sport="nhl">🏒 NHL</button><button data-sport="nba">🏀 NBA</button></div><div class="subnav" id="leagues"></div><div class="top"><div><h1 id="title">Premier League</h1><div class="small" id="summary">Hämtar matcher…</div></div><button class="action" id="refresh">↻ Uppdatera matcher</button></div>
 <div class="grid"><section class="card"><h2>Matcher</h2><div id="games" class="games" aria-live="polite">Hämtar matcher…</div></section><section class="card"><h2>Matchinformation</h2><div id="detail" class="muted">Välj en match till vänster.</div></section></div>
-<div class="below"><section class="card"><h2>📊 Tabell</h2><div id="standings" class="tablewrap muted">Hämtar tabell…</div></section><section class="card"><h2>🔎 Lagform och jämförelse</h2><div id="analysis" class="muted">Välj en match för att jämföra lagen och se de senaste matcherna.</div></section></div><section class="card" style="margin-top:18px"><h2>🧠 AI-analys – baserad på matchstatistik</h2><div id="ai-insight" class="muted">Välj en match för att läsa analysen.</div></section><p class="note">Källor: ESPN:s publika sportdata och NHL:s matchdata. Uppgifter kan vara fördröjda. Tabeller och lagform visas bara när källan tillhandahåller informationen. Prognoserna bygger på en enkel, otestad statistikmodell och är inte en tränad AI eller tillförlitliga vinstsannolikheter. Uppdateras automatiskt var 60:e sekund.</p></main>
+<div class="below"><section class="card"><h2>📊 Tabell</h2><div id="standings" class="tablewrap muted">Hämtar tabell…</div></section><section class="card"><h2>🔎 Lagform och jämförelse</h2><div id="analysis" class="muted">Välj en match för att jämföra lagen och se de senaste matcherna.</div></section></div><section class="card" style="margin-top:18px"><h2>🧠 AI-analys – baserad på matchstatistik</h2><div id="ai-insight" class="muted">Välj en match för att läsa analysen.</div></section><section class="card" style="margin-top:18px"><h2>⭐ Spelarstatistik & matchens nyckelspelare</h2><div id="players" class="muted">Välj en match för att se tillgänglig spelarstatistik.</div></section><p class="note">Källor: ESPN:s publika sportdata och NHL:s matchdata. Uppgifter kan vara fördröjda. Tabeller och lagform visas bara när källan tillhandahåller informationen. Prognoserna bygger på en enkel, otestad statistikmodell och är inte en tränad AI eller tillförlitliga vinstsannolikheter. Uppdateras automatiskt var 60:e sekund.</p></main>
 <script>
 const L={premier:'Premier League',champions:'Champions League',allsvenskan:'Allsvenskan',laliga:'La Liga',seriea:'Serie A'};
 const state={sport:'football',league:'premier',events:[],selected:null,stamp:0};
@@ -22,7 +22,7 @@ function parseNHL(d){return (d.games||[]).map(g=>({id:g.id,date:g.startTimeUTC,s
 function fmtDate(date){if(!date)return 'Tid saknas';try{return new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Stockholm',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(date))}catch{return 'Tid saknas'}}
 function hasScore(e){return e.home.score!==undefined&&e.away.score!==undefined}
 function renderGames(){const box=$('games');box.replaceChildren();if(!state.events.length){box.textContent='Inga matcher hittades för den här omgången/dagen.';return}state.events.forEach(e=>{const b=el('button','game'+(state.selected===e.id?' selected':''));const row=el('div','matchrow');const teams=el('div','teams');[e.home,e.away].forEach(t=>{const line=el('div','team');line.append(image(t.logo),el('span','',t.name));teams.append(line)});row.append(teams,el('div','score',hasScore(e)?`${e.home.score} – ${e.away.score}`:'– : –'));b.append(row,el('div','status',`${fmtDate(e.date)} · ${text(e.status)}`));b.onclick=()=>selectMatch(e.id);box.append(b)})}
-function selectMatch(id){state.selected=id;renderGames();const e=state.events.find(x=>x.id===id);if(!e)return;const d=$('detail');d.replaceChildren();d.append(el('div','small',`${fmtDate(e.date)} · ${text(e.status)}`));[e.home,e.away].forEach(t=>{const r=el('div','detail-team');r.append(image(t.logo),el('span','',t.name),el('span','detail-score',text(t.score)));d.append(r)});if(e.venue)d.append(el('p','small','Arena: '+e.venue));if(e.home.record||e.away.record)d.append(el('p','small',`Säsongsresultat: ${e.home.name}: ${text(e.home.record)} | ${e.away.name}: ${text(e.away.record)}`));loadAnalysis(e)}
+function selectMatch(id){state.selected=id;renderGames();const e=state.events.find(x=>x.id===id);if(!e)return;const d=$('detail');d.replaceChildren();d.append(el('div','small',`${fmtDate(e.date)} · ${text(e.status)}`));[e.home,e.away].forEach(t=>{const r=el('div','detail-team');r.append(image(t.logo),el('span','',t.name),el('span','detail-score',text(t.score)));d.append(r)});if(e.venue)d.append(el('p','small','Arena: '+e.venue));if(e.home.record||e.away.record)d.append(el('p','small',`Säsongsresultat: ${e.home.name}: ${text(e.home.record)} | ${e.away.name}: ${text(e.away.record)}`));loadAnalysis(e);loadPlayers(e)}
 function numScore(v){if(v===undefined||v===null||v==='')return null;const n=Number(typeof v==='object'?(v.value??v.displayValue):v);return Number.isFinite(n)?n:null}
 function completedEspnGame(e){return e.status?.type?.completed===true||e.competitions?.[0]?.status?.type?.completed===true}
 function espnResults(data,teamId){return (data.events||[]).filter(completedEspnGame).map(e=>{const teams=e.competitions?.[0]?.competitors||[];const me=teams.find(x=>String(x.team?.id)===String(teamId));const other=teams.find(x=>x!==me);if(!me||!other)return null;const scored=numScore(me.score),conceded=numScore(other.score);if(scored===null||conceded===null)return null;return {date:e.date,scored,conceded,opponent:other.team?.displayName||'Motståndare',result:scored>conceded?'W':scored<conceded?'L':'D'}}).filter(Boolean)}
@@ -34,6 +34,69 @@ async function loadAnalysis(e){const box=$('analysis');box.textContent='Hämtar 
 function flattenStandings(d){const rows=[];const visit=(obj)=>{if(!obj||typeof obj!=='object')return;if(Array.isArray(obj)){obj.forEach(visit);return}if(obj.team&&(obj.stats||obj.statistics)){rows.push(obj);return}if(obj.entries)visit(obj.entries);if(obj.children)visit(obj.children);if(obj.standings)visit(obj.standings)};visit(d);return rows}
 function stat(row,name){const a=row.stats||row.statistics||[];return text(a.find(x=>x.name===name||x.abbreviation===name)?.displayValue)}
 async function loadStandings(){const box=$('standings');box.textContent='Hämtar tabell…';try{const d=await get(state.sport==='nhl'?'/api/nhl/standings':`/api/league/${state.sport==='nba'?'nba':state.league}/standings`);if(state.sport==='nhl'){const teams=d.standings||[];if(!teams.length)throw Error('Ingen tabell');const table=el('table');const head=el('tr');['Lag','M','P'].forEach(s=>head.append(el('th','',s)));table.append(head);teams.sort((a,b)=>(a.leagueSequence||999)-(b.leagueSequence||999)).forEach(t=>{const row=el('tr');row.append(el('td','',t.teamName?.default||t.teamAbbrev?.default||'–'),el('td','',text(t.gamesPlayed)),el('td','',text(t.points)));table.append(row)});box.replaceChildren(table);return}const rows=flattenStandings(d);if(!rows.length)throw Error('Ingen tabell från datakällan');const table=el('table');const head=el('tr');(state.sport==='nba'?['Lag','M','V','F','V%']:['Lag','M','P']).forEach(s=>head.append(el('th','',s)));table.append(head);rows.forEach(r=>{const tr=el('tr');const team=el('td');team.append(image(r.team.logos?.[0]?.href),document.createTextNode(r.team.displayName||r.team.name||'–'));if(state.sport==='nba'){tr.append(team,el('td','',stat(r,'gamesPlayed')),el('td','',stat(r,'wins')),el('td','',stat(r,'losses')),el('td','',stat(r,'winPercent')))}else{tr.append(team,el('td','',stat(r,'gamesPlayed')),el('td','',stat(r,'points')))}table.append(tr)});box.replaceChildren(table)}catch(err){box.textContent='Tabellen är inte tillgänglig just nu. Matcherna kan ändå fungera.'}}
-async function loadAll(){const sport=state.sport,league=state.league;const key=sport+league;state.stamp++;$('title').textContent=sport==='nhl'?'NHL':sport==='nba'?'NBA':L[league];$('summary').textContent='Hämtar matcher…';$('games').textContent='Hämtar matcher…';$('detail').textContent='Välj en match till vänster.';$('analysis').textContent='Välj en match för att se lagform.';$('ai-insight').textContent='Välj en match för att läsa analysen.';const url=sport==='nhl'?'/api/nhl':`/api/league/${sport==='nba'?'nba':league}/scoreboard`;try{const d=await get(url);if(key!==state.sport+state.league)return;state.events=sport==='nhl'?parseNHL(d):parseEspn(d);$('summary').textContent=`${state.events.length} matcher · Senast uppdaterad ${new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})}`;$('updated').textContent='● Matchdata ansluten';renderGames();if(state.events.length)selectMatch(state.events[0].id)}catch(err){if(key!==state.sport+state.league)return;state.events=[];$('summary').textContent='Kunde inte hämta matcher';$('games').textContent=`Kontrollera att server.js körs och att API:et svarar. ${err.message}`;$('updated').textContent='● Datakälla otillgänglig'}loadStandings()}
+async function loadAll(){const sport=state.sport,league=state.league;const key=sport+league;state.stamp++;$('title').textContent=sport==='nhl'?'NHL':sport==='nba'?'NBA':L[league];$('summary').textContent='Hämtar matcher…';$('games').textContent='Hämtar matcher…';$('detail').textContent='Välj en match till vänster.';$('analysis').textContent='Välj en match för att se lagform.';$('ai-insight').textContent='Välj en match för att läsa analysen.';$('players').textContent='Välj en match för att se spelarstatistik.';const url=sport==='nhl'?'/api/nhl':`/api/league/${sport==='nba'?'nba':league}/scoreboard`;try{const d=await get(url);if(key!==state.sport+state.league)return;state.events=sport==='nhl'?parseNHL(d):parseEspn(d);$('summary').textContent=`${state.events.length} matcher · Senast uppdaterad ${new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})}`;$('updated').textContent='● Matchdata ansluten';renderGames();if(state.events.length)selectMatch(state.events[0].id)}catch(err){if(key!==state.sport+state.league)return;state.events=[];$('summary').textContent='Kunde inte hämta matcher';$('games').textContent=`Kontrollera att server.js körs och att API:et svarar. ${err.message}`;$('updated').textContent='● Datakälla otillgänglig'}loadStandings()}
+// Ingen spelare utses utan data. Vid färdigspelade matcher visas en statistisk
+// toppspelare, inte en officiell MVP. För kommande matcher behövs historiska
+// spelardata innan en prognos kan göras på ett trovärdigt sätt.
+function playerLine(name,team,parts,score){return {name,team,parts,score}}
+function parseNhlPlayers(data){
+ const result=[];const stats=data.playerByGameStats||{};
+ for(const side of ['homeTeam','awayTeam']){
+  const club=data[side]?.abbrev||side;
+  for(const role of ['forwards','defense'])for(const x of stats[side]?.[role]||[]){
+   const goals=Number(x.goals)||0,assists=Number(x.assists)||0,shots=Number(x.sog)||0;
+   const name=x.name?.default||x.name||x.playerName?.default||'Okänd spelare';
+   result.push(playerLine(name,club,`Mål ${goals} · Assist ${assists} · Skott ${shots}`,goals*3+assists*2+shots*.15));
+  }
+ }
+ return result.sort((a,b)=>b.score-a.score);
+}
+function parseEspnPlayers(data,sport){
+ const result=[];
+ for(const club of data.boxscore?.players||[]){
+  const team=club.team?.displayName||club.team?.name||'Lag';
+  for(const group of club.statistics||[]){
+   const labels=group.labels||group.names||[];
+   for(const x of group.athletes||[]){
+    if(x.didNotPlay||!x.stats?.length)continue;
+    const name=x.athlete?.displayName||x.athlete?.fullName||'Okänd spelare';
+    const values=x.stats;const find=(key)=>{let i=labels.findIndex(t=>String(t).toUpperCase()===key);return i<0?null:Number(values[i])};
+    if(sport==='nba'){
+      const pts=find('PTS'),reb=find('REB'),ast=find('AST');
+      if(pts===null||!Number.isFinite(pts))continue;
+      result.push(playerLine(name,team,`Poäng ${pts} · Returer ${Number.isFinite(reb)?reb:'–'} · Assist ${Number.isFinite(ast)?ast:'–'}`,pts+(Number.isFinite(reb)?reb*.6:0)+(Number.isFinite(ast)?ast*.8:0)));
+    }else{
+      const pairs=labels.map((k,i)=>`${k}: ${values[i]}`).slice(0,5);
+      if(pairs.length)result.push(playerLine(name,team,pairs.join(' · '),0));
+    }
+   }
+  }
+ }
+ return sport==='nba'?result.sort((a,b)=>b.score-a.score):result;
+}
+async function loadPlayers(e){
+ const box=$('players');box.textContent='Hämtar spelarstatistik…';
+ const sport=state.sport,league=state.league,id=e.id;
+ try{
+  const url=sport==='nhl'?`/api/nhl/game/${encodeURIComponent(id)}/boxscore`:`/api/league/${sport==='nba'?'nba':league}/event/${encodeURIComponent(id)}/summary`;
+  const data=await get(url);
+  if(state.sport!==sport||state.selected!==id||state.league!==league)return;
+  const players=sport==='nhl'?parseNhlPlayers(data):parseEspnPlayers(data,sport);
+  box.replaceChildren();
+  if(!e.completed){
+   box.append(el('p','muted','Matchen är inte färdigspelad. En prognos för bästa spelare kräver verifierad spelarform och förväntad speltid; därför visar vi ingen påhittad favorit.'));
+   return;
+  }
+  if(!players.length){box.textContent='Spelarstatistik saknas för den här matchen hos datakällan.';return}
+  if(sport!=='football'){
+   const top=players[0];
+   box.append(el('p','insight',`Statistiskt mest framstående spelare i den här matchen: ${top.name} (${top.team}). Rangordningen är Sport-IQ:s enkla poängmodell, inte en officiell utmärkelse.`));
+  }else box.append(el('p','small','Tillgänglig spelarstatistik från matchrapporten (ingen automatiserad MVP-rankning för fotboll ännu).'));
+  const table=el('table');const head=el('tr');['Spelare','Lag','Matchstatistik'].forEach(x=>head.append(el('th','',x)));table.append(head);
+  players.slice(0,15).forEach(x=>{const tr=el('tr');[x.name,x.team,x.parts].forEach(y=>tr.append(el('td','',y)));table.append(tr)});
+  const wrap=el('div','tablewrap');wrap.append(table);box.append(wrap);
+  box.append(el('p','small','Endast verifierad matchdata visas. Tillgång och statistik varierar mellan ligor.'));
+ }catch(err){if(state.sport===sport&&state.selected===id)box.textContent='Spelarstatistik kunde inte hämtas för den här matchen just nu.'}
+}
 renderLeagues();loadAll();setInterval(loadAll,60000);
 </script></body></html>

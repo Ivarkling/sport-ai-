@@ -36,4 +36,14 @@ app.get('/api/league/:league/team/:id/schedule',api(req=>{
   if(!/^\d{1,12}$/.test(id))throw Error('Ogiltigt lag-ID');
   return espn(l,`teams/${id}/schedule?limit=100`);
 }));
+// Spelarstatistik för vald match: officiell NHL-boxscore eller ESPN-matchsammanfattning.
+app.get('/api/nhl/game/:id/boxscore',api(req=>{
+  if(!/^\d{1,12}$/.test(req.params.id))throw Error('Ogiltigt match-ID');
+  return nhl(`gamecenter/${req.params.id}/boxscore`);
+}));
+app.get('/api/league/:league/event/:id/summary',api(req=>{
+  const l=checkLeague(req);
+  if(!/^\d{1,12}$/.test(req.params.id))throw Error('Ogiltigt match-ID');
+  return espn(l,`summary?event=${req.params.id}`);
+}));
 app.listen(PORT,()=>console.log(`Sport-IQ körs på port ${PORT}`));
